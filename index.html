@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dynamic Floating Elements</title>
+  <style>
+    /* Basic Reset */
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #121212;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      user-select: none;
+    }
+
+    /* Container to hold all floating elements */
+    .floating-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Each floating element styling */
+    .floating {
+      position: absolute;
+      padding: 12px 25px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+      cursor: default;
+      font-size: 1.1rem;
+      white-space: nowrap;
+      will-change: transform;
+      /* To make smooth animations */
+      transition: transform 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-container" id="container">
+    <div class="floating">Floating Element 1</div>
+    <div class="floating">Floating Element 2</div>
+    <div class="floating">Floating Element 3</div>
+    <div class="floating">Floating Element 4</div>
+    <div class="floating">Floating Element 5</div>
+    <div class="floating">Floating Element 6</div>
+    <div class="floating">Floating Element 7</div>
+    <div class="floating">Floating Element 8</div>
+  </div>
+
+  <script>
+    // JavaScript for random smooth floating motion
+
+    const container = document.getElementById('container');
+    const elements = container.querySelectorAll('.floating');
+
+    // Function to generate random float between min and max
+    function randomRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // Each element gets its own floating parameters
+    elements.forEach(el => {
+      // Set initial random position inside container bounds (taking element size into account)
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+
+      const elWidth = el.offsetWidth;
+      const elHeight = el.offsetHeight;
+
+      // Initial position
+      let posX = randomRange(0, containerWidth - elWidth);
+      let posY = randomRange(0, containerHeight - elHeight);
+
+      el.style.transform = `translate(${posX}px, ${posY}px)`;
+
+      // Floating parameters
+      const floatRangeX = randomRange(15, 40); // px range to move horizontally
+      const floatRangeY = randomRange(15, 40); // px range to move vertically
+      const floatDuration = randomRange(4000, 8000); // duration of full float cycle (ms)
+      const floatDelay = randomRange(0, floatDuration); // start delay offset
+
+      let startTime = null;
+
+      function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = (timestamp - startTime + floatDelay) % floatDuration;
+
+        // Calculate progress (0 to 1)
+        const progress = elapsed / floatDuration;
+
+        // Use sine wave for smooth back and forth motion
+        const offsetX = Math.sin(progress * 2 * Math.PI) * floatRangeX;
+        const offsetY = Math.cos(progress * 2 * Math.PI) * floatRangeY;
+
+        el.style.transform = `translate(${posX + offsetX}px, ${posY + offsetY}px)`;
+
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+    });
+
+    // Optional: Update positions on window resize to keep elements inside viewport
+    window.addEventListener('resize', () => {
+      elements.forEach(el => {
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight;
+
+        const elWidth = el.offsetWidth;
+        const elHeight = el.offsetHeight;
+
+        // Just reposition if outside viewport
+        let matrix = new WebKitCSSMatrix(getComputedStyle(el).transform);
+        let baseX = matrix.m41;
+        let baseY = matrix.m42;
+
+        if (baseX > containerWidth - elWidth) baseX = containerWidth - elWidth;
+        if (baseY > containerHeight - elHeight) baseY = containerHeight - elHeight;
+
+        el.style.transform = `translate(${baseX}px, ${baseY}px)`;
+      });
+    });
+  </script>
+</body>
+</html>
